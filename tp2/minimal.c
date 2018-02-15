@@ -67,9 +67,11 @@ int main (int argc, char ** argv){
 
 	int color = 1;
 	int mode = 0;
+	int full = 0;
+	float x = 0, y = 0;
 
 	ShapeList shapes = NULL;
-	addShape(allocShape(GL_POINTS), &shapes);
+	addShape(allocShape(GL_LINE_STRIP), &shapes);
 
 	int loop = 1;
 	while(loop){
@@ -94,12 +96,19 @@ int main (int argc, char ** argv){
                 break;
             }
 			switch(e.type){
+				case SDL_MOUSEMOTION:
+					x = -1 + 2. * e.motion.x / WINDOW_WIDTH;
+					y = - (-1 + 2. * e.motion.y / WINDOW_HEIGHT);
+					break;
 				case SDL_MOUSEBUTTONUP:
 					if (mode){
 						color = e.button.x * NB_COLORS / WINDOW_WIDTH;
 					}
 					else{
-						addPointToList(allocPoint(-1 + 2. * e.button.x / WINDOW_WIDTH, - (-1 + 2. * e.button.y / WINDOW_HEIGHT), COLORS[color * 3], COLORS[color * 3 + 1], COLORS[color * 3 + 2]), &shapes->points);
+						addPointToList(allocPoint(x, y, COLORS[color * 3], COLORS[color * 3 + 1], COLORS[color * 3 + 2]), &shapes->points);
+						if (e.button.button == SDL_BUTTON_RIGHT){
+							drawPolygon(&shapes, full);
+						}
 					}
 					break;
 
@@ -107,26 +116,31 @@ int main (int argc, char ** argv){
 					if (e.key.keysym.sym == SDLK_SPACE){
 						mode = 1;
 					}
+					else if (e.key.keysym.sym == SDLK_LSHIFT){
+						full = 1;
+					}
 					break;
 
 				case SDL_KEYUP:
                     if (e.key.keysym.sym == SDLK_SPACE){
                         mode = 0;
-                    } else {
+                    } else if (e.key.keysym.sym == SDLK_LSHIFT){
+						full = 0;
+					} else {
                         switch(e.key.keysym.sym){
                             case SDLK_q:
                                 printf("Quit...\n");
                                 loop = 0;
                                 break;
-                            case SDLK_p:
-                                addShape(allocShape(GL_POINTS), &shapes);
-                                break;
+                            case SDLK_s:
+                            	drawSquare(x, y, &shapes, color, full);
+                            	break;
                             case SDLK_l:
-                                addShape(allocShape(GL_LINES), &shapes);
-                                break;
-                            case SDLK_t:
-                                addShape(allocShape(GL_TRIANGLES), &shapes);
-                                break;
+                            	drawLandmark(&shapes);
+                            	break;
+                            case SDLK_c:
+                            	drawCircle(&shapes, color, full);
+                            	break;
                             default:
                                 break;
                         }
@@ -140,12 +154,6 @@ int main (int argc, char ** argv){
 					break;
 			}
 		}
-
-		/*
-		glBegin(GL_POINTS);
-			glVertex2f(-1 + 2. * x / WINDOW_WIDTH, -(-1 + 2. * y / WINDOW_HEIGHT));
-		glEnd();
-		*/
 
 		Uint32 elapsedTime = SDL_GetTicks() - startTime;
 		if (elapsedTime < FRAMERATE_MILLISECONDS){
@@ -237,4 +245,53 @@ void deleteShape(ShapeList * list){
 		free(*list);
 		*list = next;
 	}
+}
+
+void drawPolygon(ShapeList * shape, int full){
+	if (full)
+		addShape(allocShape(GL_POLYGON), shape);
+	else
+		addShape(allocShape(GL_LINE_LOOP), shape);
+	(*shape)->points = (*shape)->next->points;
+	addShape(allocShape(GL_LINE_STRIP), shape);
+}
+
+/* Dessine un carré de coté 1 ayant pour centre les coordonnées de la souris */
+void drawSquare(float x, float y, ShapeList * shape, int color, int full){
+	if (full)
+		addShape(allocShape(GL_QUADS), shape);
+	else
+		addShape(allocShape(GL_LINE_LOOP), shape);
+	addPointToList(allocPoint(x-0.5, y+0.5, COLORS[color * 3], COLORS[color * 3 + 1], COLORS[color * 3 + 2]), &(*shape)->points);
+	addPointToList(allocPoint(x+0.5, y+0.5, COLORS[color * 3], COLORS[color * 3 + 1], COLORS[color * 3 + 2]), &(*shape)->points);
+	addPointToList(allocPoint(x+0.5, y-0.5, COLORS[color * 3], COLORS[color * 3 + 1], COLORS[color * 3 + 2]), &(*shape)->points);
+	addPointToList(allocPoint(x-0.5, y-0.5, COLORS[color * 3], COLORS[color * 3 + 1], COLORS[color * 3 + 2]), &(*shape)->points);
+	addShape(allocShape(GL_LINE_STRIP), shape);
+}
+
+/* Dessine un repère orthogonal au centre */
+void drawLandmark(ShapeList * shape){
+	addShape(allocShape(GL_LINES), shape);
+	addPointToList(allocPoint(-0.5, 0, COLORS[2 * 3], COLORS[2 * 3 + 1], COLORS[2 * 3 + 2]), &(*shape)->points);
+	addPointToList(allocPoint(0.5, 0, COLORS[2 * 3], COLORS[2 * 3 + 1], COLORS[2 * 3 + 2]), &(*shape)->points);
+	addPointToList(allocPoint(0, -0.5, COLORS[3 * 3], COLORS[3 * 3 + 1], COLORS[3 * 3 + 2]), &(*shape)->points);
+	addPointToList(allocPoint(0, 0.5, COLORS[3 * 3], COLORS[3 * 3 + 1], COLORS[3 * 3 + 2]), &(*shape)->points);
+	addShape(allocShape(GL_LINE_STRIP), shape);
+}
+
+/* Dessine un cercle d'origine 0,0 et de diamètre 1 */
+void drawCircle(ShapeList * shape, int color, int full){
+	int i;
+	float theta, x, y;
+	if (full)
+		addShape(allocShape(GL_POLYGON), shape);
+	else
+		addShape(allocShape(GL_LINE_LOOP), shape);
+	for (i = 0; i < NB_VERTEX_CIRCLE; i++){
+		theta = 2.0 * 3.1415926f * (float)i/(float)NB_VERTEX_CIRCLE;
+		x = 0.5 * cosf(theta);
+		y = 0.5 * sinf(theta);
+		addPointToList(allocPoint(x, y, COLORS[color * 3], COLORS[color * 3 + 1], COLORS[color * 3 + 2]), &(*shape)->points);
+	}
+	addShape(allocShape(GL_LINE_STRIP), shape);
 }
