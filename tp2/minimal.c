@@ -27,7 +27,7 @@ void resize(){
 	glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	gluOrtho2D(-1., 1., -1., 1.);
+	gluOrtho2D(-5, 5, -5, 5);
 }
 
 void resize_window(){
@@ -40,16 +40,20 @@ void resize_window(){
 	SDL_GL_SwapBuffers();
 }
 
+void transform(){
+	glMatrixMode(GL_MODELVIEW);
+}
+
 void displayColors(){
     int i;
     GLfloat dx = 2.f / NB_COLORS;
     glBegin(GL_QUADS);
     for(i = 0; i < NB_COLORS; ++i) {
         glColor3ubv(COLORS + i * 3);  
-        glVertex2f(-1 + i * dx, -1);
-        glVertex2f(-1 + (i + 1) * dx, -1);
-        glVertex2f(-1 + (i + 1) * dx, 1);
-        glVertex2f(-1 + i * dx, 1);
+        glVertex2f(-5 + i * dx*5, -5);
+        glVertex2f(-5 + (i + 1) * dx*5, -5);
+        glVertex2f(-5 + (i + 1) * dx*5, 5);
+        glVertex2f(-5 + i * dx*5, 5);
     }
     glEnd();    
 }
@@ -72,6 +76,7 @@ int main (int argc, char ** argv){
 
 	ShapeList shapes = NULL;
 	addShape(allocShape(GL_LINE_STRIP), &shapes);
+	drawLandmark(&shapes);
 
 	int loop = 1;
 	while(loop){
@@ -97,8 +102,8 @@ int main (int argc, char ** argv){
             }
 			switch(e.type){
 				case SDL_MOUSEMOTION:
-					x = -1 + 2. * e.motion.x / WINDOW_WIDTH;
-					y = - (-1 + 2. * e.motion.y / WINDOW_HEIGHT);
+					x = (-1 + 2. * e.motion.x / WINDOW_WIDTH)*5.;
+					y = (- (-1 + 2. * e.motion.y / WINDOW_HEIGHT))*5.;
 					break;
 				case SDL_MOUSEBUTTONUP:
 					if (mode){
@@ -133,13 +138,32 @@ int main (int argc, char ** argv){
                                 loop = 0;
                                 break;
                             case SDLK_s:
-                            	drawSquare(x, y, &shapes, color, full);
-                            	break;
-                            case SDLK_l:
-                            	drawLandmark(&shapes);
+                            	drawSquare(&shapes, color, full);
                             	break;
                             case SDLK_c:
                             	drawCircle(&shapes, color, full);
+                            	break;
+                           	case SDLK_d:
+                            	deleteShape(&shapes);
+								addShape(allocShape(GL_LINE_STRIP), &shapes);
+                            	break;
+                            case SDLK_LEFT:
+                            	moveShapes(SDLK_LEFT);
+                            	break;
+                            case SDLK_UP:
+                            	moveShapes(SDLK_UP);
+                            	break;
+                            case SDLK_RIGHT:
+                            	moveShapes(SDLK_RIGHT);
+                            	break;
+                            case SDLK_DOWN:
+                            	moveShapes(SDLK_DOWN);
+                            	break;
+                            case SDLK_e:
+                            	rotateShapes(SDLK_e);
+                            	break;
+                            case SDLK_a:
+                            	rotateShapes(SDLK_a);
                             	break;
                             default:
                                 break;
@@ -150,6 +174,7 @@ int main (int argc, char ** argv){
 					WINDOW_WIDTH = e.resize.w;
 					WINDOW_HEIGHT= e.resize.h;
 					resize_window();
+					drawLandmark(&shapes);
 				default:
 					break;
 			}
@@ -257,25 +282,25 @@ void drawPolygon(ShapeList * shape, int full){
 }
 
 /* Dessine un carré de coté 1 ayant pour centre les coordonnées de la souris */
-void drawSquare(float x, float y, ShapeList * shape, int color, int full){
+void drawSquare(ShapeList * shape, int color, int full){
 	if (full)
 		addShape(allocShape(GL_QUADS), shape);
 	else
 		addShape(allocShape(GL_LINE_LOOP), shape);
-	addPointToList(allocPoint(x-0.5, y+0.5, COLORS[color * 3], COLORS[color * 3 + 1], COLORS[color * 3 + 2]), &(*shape)->points);
-	addPointToList(allocPoint(x+0.5, y+0.5, COLORS[color * 3], COLORS[color * 3 + 1], COLORS[color * 3 + 2]), &(*shape)->points);
-	addPointToList(allocPoint(x+0.5, y-0.5, COLORS[color * 3], COLORS[color * 3 + 1], COLORS[color * 3 + 2]), &(*shape)->points);
-	addPointToList(allocPoint(x-0.5, y-0.5, COLORS[color * 3], COLORS[color * 3 + 1], COLORS[color * 3 + 2]), &(*shape)->points);
+	addPointToList(allocPoint(-0.5, 0.5, COLORS[color * 3], COLORS[color * 3 + 1], COLORS[color * 3 + 2]), &(*shape)->points);
+	addPointToList(allocPoint(0.5, 0.5, COLORS[color * 3], COLORS[color * 3 + 1], COLORS[color * 3 + 2]), &(*shape)->points);
+	addPointToList(allocPoint(0.5, -0.5, COLORS[color * 3], COLORS[color * 3 + 1], COLORS[color * 3 + 2]), &(*shape)->points);
+	addPointToList(allocPoint(-0.5, -0.5, COLORS[color * 3], COLORS[color * 3 + 1], COLORS[color * 3 + 2]), &(*shape)->points);
 	addShape(allocShape(GL_LINE_STRIP), shape);
 }
 
 /* Dessine un repère orthogonal au centre */
 void drawLandmark(ShapeList * shape){
 	addShape(allocShape(GL_LINES), shape);
-	addPointToList(allocPoint(-0.5, 0, COLORS[2 * 3], COLORS[2 * 3 + 1], COLORS[2 * 3 + 2]), &(*shape)->points);
-	addPointToList(allocPoint(0.5, 0, COLORS[2 * 3], COLORS[2 * 3 + 1], COLORS[2 * 3 + 2]), &(*shape)->points);
-	addPointToList(allocPoint(0, -0.5, COLORS[3 * 3], COLORS[3 * 3 + 1], COLORS[3 * 3 + 2]), &(*shape)->points);
-	addPointToList(allocPoint(0, 0.5, COLORS[3 * 3], COLORS[3 * 3 + 1], COLORS[3 * 3 + 2]), &(*shape)->points);
+	addPointToList(allocPoint(-4, 0, COLORS[2 * 3], COLORS[2 * 3 + 1], COLORS[2 * 3 + 2]), &(*shape)->points);
+	addPointToList(allocPoint(4, 0, COLORS[2 * 3], COLORS[2 * 3 + 1], COLORS[2 * 3 + 2]), &(*shape)->points);
+	addPointToList(allocPoint(0, -3, COLORS[3 * 3], COLORS[3 * 3 + 1], COLORS[3 * 3 + 2]), &(*shape)->points);
+	addPointToList(allocPoint(0, 3, COLORS[3 * 3], COLORS[3 * 3 + 1], COLORS[3 * 3 + 2]), &(*shape)->points);
 	addShape(allocShape(GL_LINE_STRIP), shape);
 }
 
@@ -294,4 +319,28 @@ void drawCircle(ShapeList * shape, int color, int full){
 		addPointToList(allocPoint(x, y, COLORS[color * 3], COLORS[color * 3 + 1], COLORS[color * 3 + 2]), &(*shape)->points);
 	}
 	addShape(allocShape(GL_LINE_STRIP), shape);
+}
+
+/* Déplace les formes 1 point vers la direction indiqué */
+void moveShapes(SDLKey key){
+	transform();
+	if (key == SDLK_UP)
+		glTranslatef(0,1.,0);
+	else if (key == SDLK_DOWN)
+		glTranslatef(0,-1.,0);
+	else if (key == SDLK_RIGHT)
+		glTranslatef(1.,0,0);
+	else if (key == SDLK_LEFT)
+		glTranslatef(-1.,0,0);
+
+}
+
+/* Rotate les formes de 45 degrés vers la direction indiqué */
+void rotateShapes(SDLKey key){
+	transform();
+	if (key == SDLK_e)
+		glRotatef(-45.,0.,0.,1.0);
+	else if (key == SDLK_a)
+		glRotatef(45.,0.,0.,1.0);
+
 }

@@ -49,13 +49,19 @@ void deleteShape(ShapeList * list);
 /* Dessine un polygone */
 void drawPolygon(ShapeList * shape, int full);
 
-/* Dessine un carré de coté 1 ayant pour centre les coordonnées de la souris */
-void drawSquare(float x, float y, ShapeList * shape, int color, int full);
+/* Dessine un carré de coté 1 au centre */
+void drawSquare(ShapeList * shape, int color, int full);
 
 /* Dessine un repère orthogonal au centre */
 void drawLandmark(ShapeList * shape);
 
 /* Dessine un cercle d'origine 0,0 et de diamètre 1 */
 void drawCircle(ShapeList * shape, int color, int full);
+
+/* Déplace la dernière forme dessiner de 1 point vers la direction indiqué */
+void moveShapes(SDLKey key);
+
+/* Rotate les formes de 45 degrés vers la direction indiqué */
+void rotateShapes(SDLKey key);
 
 #endif
