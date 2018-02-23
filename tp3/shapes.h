@@ -22,14 +22,14 @@ void drawRoundedSquare();
 /* Dessine un repère orthogonal au centre */
 void drawLandmark();
 
-/* Dessine le bras principal */
-void drawFirstArm();
+/* Créer l'indice de la liste permettant de dessiner le bras principal */
+void createFirstArmIDList(GLuint id);
 
-/* Dessine le bras manipulateur */
-void drawSecondArm();
+/* Créer l'indice de la liste permettant de dessiner le bras manipulateur */
+void createSecondArmIDList(GLuint id);
 
-/* Dessine le batteur */
-void drawThirdArm();
+/* Créer l'indice de la liste permettant de dessiner le batteur */
+void createThirdArmIDList(GLuint id);
 
 /* Dessine le bras mécanique en entier */
 void drawFullArm(float alpha, float beta, float gamma);

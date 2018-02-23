@@ -38,34 +38,38 @@ int main (int argc, char ** argv){
 		return EXIT_FAILURE;
 	}
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 0);
-
 	resize_window();
 	SDL_WM_SetCaption("Michel YIP - OpenGL_TP01", NULL);
 	transform();
+
 	int loop = 1;
-	int alpha = 45, beta = -10, gamma = 180, rotationSpeed = 3;
-	int gammaB = 60, gammaC = 120, gammaD = 240, gammaE = 0;
+	
+	int alpha = 45, beta = -10, rotationSpeed = 1;
+	int gammaA = 120, gammaB = 240, gammaC = 0;
+	
+	GLuint id = glGenLists(3);
+	createFirstArmIDList(id);
+	createSecondArmIDList(id+1);
+	createThirdArmIDList(id+2);
+
+    glColor3ub(255,255,255);
+	
 	while(loop){
-        glColor3ub(255,255,255);
 		Uint32 startTime = SDL_GetTicks();
 		alpha = (alpha + rotationSpeed)%360;
-		beta = (beta + rotationSpeed)%360;
-		gamma = (gamma + rotationSpeed*2)%360;
-		gammaB = (gammaB + rotationSpeed*3)%360;
-		gammaC = (gammaC + rotationSpeed*4)%360;
-		gammaD = (gammaD + rotationSpeed*4)%360;
-		gammaE = (gammaE + rotationSpeed*4)%360;
+		beta = (beta + rotationSpeed*2)%360;
+		gammaA = (gammaA + rotationSpeed)%360;
+		gammaB = (gammaB + rotationSpeed*2)%360;
+		gammaC = (gammaC + rotationSpeed*3)%360;
 
 		/* Echange les deux buffers */
 		SDL_GL_SwapBuffers();
 		/* On nettoie la fenetre */
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		drawFullArm((float)alpha, (float)beta, (float)gamma);
+		drawFullArm((float)alpha, (float)beta, (float)gammaA);
 		drawFullArm((float)alpha, (float)beta, (float)gammaB);
 		drawFullArm((float)alpha, (float)beta, (float)gammaC);
-		drawFullArm((float)alpha, (float)beta, (float)gammaD);
-		drawFullArm((float)alpha, (float)beta, (float)gammaE);
 
 		/* Gestion des évènements SDL */
 		SDL_Event e;
@@ -75,12 +79,6 @@ int main (int argc, char ** argv){
                 break;
             }
 			switch(e.type){
-				case SDL_MOUSEMOTION:
-					break;
-				case SDL_MOUSEBUTTONUP:
-					break;
-				case SDL_KEYDOWN:
-					break;
 				case SDL_KEYUP:
                     switch(e.key.keysym.sym){
                         case SDLK_q:
@@ -104,6 +102,7 @@ int main (int argc, char ** argv){
 			SDL_Delay(FRAMERATE_MILLISECONDS - elapsedTime);
 		}
 	}
+
 	SDL_Quit();
 	return EXIT_SUCCESS;
 }
@@ -173,74 +172,80 @@ void drawLandmark(){
 	glEnd();
 }
 
-/* Dessine le bras principal */
-void drawFirstArm(){
-	glPushMatrix();
-		glScalef(40,40,0);
-		drawCircle();
-	glPopMatrix();
-	glPushMatrix();
-		glTranslatef(60,0,0);
-		glScalef(20,20,0);
-		drawCircle();
-	glPopMatrix();
-	glBegin(GL_LINE_LOOP);
-		glVertex2f(0,20);
-		glVertex2f(60,10);
-		glVertex2f(60,-10);
-		glVertex2f(0,-20);
-	glEnd();
+/* Créer l'indice de la liste permettant de dessiner le bras principal */
+void createFirstArmIDList(GLuint id){
+	glNewList(id, GL_COMPILE);
+		glPushMatrix();
+			glScalef(40,40,0);
+			drawCircle();
+		glPopMatrix();
+		glPushMatrix();
+			glTranslatef(60,0,0);
+			glScalef(20,20,0);
+			drawCircle();
+		glPopMatrix();
+		glBegin(GL_LINE_LOOP);
+			glVertex2f(0,20);
+			glVertex2f(60,10);
+			glVertex2f(60,-10);
+			glVertex2f(0,-20);
+		glEnd();
+	glEndList();
 }
 
-/* Dessine le bras manipulateur */
-void drawSecondArm(){
-	glPushMatrix();
-		glScalef(10,10,0);
-		drawRoundedSquare();
-	glPopMatrix();
-	glPushMatrix();
-		glTranslatef(40,0,0);
-		glScalef(10,10,0);
-		drawRoundedSquare();
-	glPopMatrix();
-	glPushMatrix();
-		glTranslatef(20,0,0);
-		glScalef(46,6,0);
-		drawSquare();
-	glPopMatrix();
+/* Créer l'indice de la liste permettant de dessiner le bras manipulateur */
+void createSecondArmIDList(GLuint id){
+	glNewList(id, GL_COMPILE);
+		glPushMatrix();
+			glScalef(10,10,0);
+			drawRoundedSquare();
+		glPopMatrix();
+		glPushMatrix();
+			glTranslatef(40,0,0);
+			glScalef(10,10,0);
+			drawRoundedSquare();
+		glPopMatrix();
+		glPushMatrix();
+			glTranslatef(20,0,0);
+			glScalef(46,6,0);
+			drawSquare();
+		glPopMatrix();
+	glEndList();
 }
 
-/* Dessine le batteur */
-void drawThirdArm(){
-	glPushMatrix();
-		glScalef(6,6,0);
-		drawRoundedSquare();
-	glPopMatrix();
-	glPushMatrix();
-		glTranslatef(20,0,0);
-		glScalef(40,4,0);
-		drawSquare();
-	glPopMatrix();
-	glPushMatrix();
-		glTranslatef(40,0,0);
-		glScalef(8,8,0);
-		drawCircle();
-	glPopMatrix();
+/* Créer l'indice de la liste permettant de dessiner le batteur */
+void createThirdArmIDList(GLuint id){
+	glNewList(id, GL_COMPILE);
+		glPushMatrix();
+			glScalef(6,6,0);
+			drawRoundedSquare();
+		glPopMatrix();
+		glPushMatrix();
+			glTranslatef(20,0,0);
+			glScalef(40,4,0);
+			drawSquare();
+		glPopMatrix();
+		glPushMatrix();
+			glTranslatef(40,0,0);
+			glScalef(8,8,0);
+			drawCircle();
+		glPopMatrix();
+	glEndList();
 }
 
 /* Dessine le bras mécanique en entier */
 void drawFullArm(float alpha, float beta, float gamma){
 	glPushMatrix();
 		glRotatef(alpha,0,0,1);
-		drawFirstArm();
+		glCallList(1);
 		glPushMatrix();
 			glTranslatef(60,0,0);
 			glRotatef(beta,0,0,1);
-			drawSecondArm();
+			glCallList(2);
 			glPushMatrix();
 				glTranslatef(40,0,0);
 				glRotatef(gamma,0,0,1);
-				drawThirdArm();
+				glCallList(3);
 			glPopMatrix();
 		glPopMatrix();
 	glPopMatrix();
