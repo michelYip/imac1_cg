@@ -1,9 +1,4 @@
-#include <SDL/SDL.h>
-#include <SDL/SDL_image.h>
-#include <GL/gl.h>
-#include <GL/glu.h>
-#include <stdlib.h>
-#include <stdio.h>
+#include "minimal.h"
 
 static unsigned int WINDOW_WIDTH = 800;
 static unsigned int WINDOW_HEIGHT = 800;
@@ -19,7 +14,7 @@ void resizeViewport() {
 }
 
 int main(int argc, char** argv) {
-
+    int i;
     // Initialisation de la SDL
     if(-1 == SDL_Init(SDL_INIT_VIDEO)) {
         fprintf(stderr, "Impossible d'initialiser la SDL. Fin du programme.\n");
@@ -36,54 +31,53 @@ int main(int argc, char** argv) {
 
     // TODO: Chargement et traitement de la texture
     /* Chargement de la texture : utilisation similaire à malloc() */
-    SDL_Surface * logo_imac;
-    if ((logo_imac = IMG_Load("numbers/1.png")) == NULL){
-        fprintf(stderr,"An error occured when loading the image\n");
-        exit(EXIT_FAILURE);
-    }
-
+    SDL_Surface * textures[SIZE];
+    loadTextures(textures);
     /* Création de la texture */
-    GLuint textureID;
-    glGenTextures(1, &textureID);
+    GLuint textureID[SIZE];
+    glGenTextures(SIZE, textureID);
 
-    /* Configuration des paramètres de textures */
-    glBindTexture(GL_TEXTURE_2D, textureID);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_CLAMP_TO_BORDER);
+    for (i = 0; i < SIZE ; i++){
+        /* Configuration des paramètres de textures */
+        glBindTexture(GL_TEXTURE_2D, textureID[i]);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        /* Envoie des données vers la carte graphique */
+        glTexImage2D(
+            GL_TEXTURE_2D,
+            0,
+            GL_RGB,
+            textures[i]->w,
+            textures[i]->h,
+            0,
+            GL_RGBA,
+            GL_UNSIGNED_BYTE,
+            textures[i]->pixels);
+        glBindTexture(GL_TEXTURE_2D, 0);
 
-    /* Envoie des données vers la carte graphique */
-    glTexImage2D(
-        GL_TEXTURE_2D,
-        0,
-        GL_RGBA,
-        logo_imac->w,
-        logo_imac->h,
-        0,
-        GL_RGBA,
-        GL_UNSIGNED_BYTE,
-        logo_imac->pixels);
-    glBindTexture(GL_TEXTURE_2D, 0);
-
-    // TODO: Libération des données CPU
-    SDL_FreeSurface(logo_imac);
-    printf("Exo 1 : Success !\n");
-    // ...
-
+        SDL_FreeSurface(textures[i]);
+    }
     int loop = 1;
     glClearColor(0.1, 0.1, 0.1 ,1.0);
-    while(loop) {
 
+    while(loop) {
 
         Uint32 startTime = SDL_GetTicks();
 
         // TODO: Code de dessin
+        time_t rawtime;
+        struct tm * t;
+        time(&rawtime);
+        t = localtime(&rawtime);
+        int hour = t->tm_hour, minute = t->tm_min, second = t->tm_sec;
 
         glClear(GL_COLOR_BUFFER_BIT);
 
         /* Activation du texturing */
         glEnable(GL_TEXTURE_2D);
-        glBindTexture(GL_TEXTURE_2D, textureID);
+        glBindTexture(GL_TEXTURE_2D, textureID[1]);
 
         /* Dessin d'un carré avec texture */
+        /*
         glPushMatrix();
             glBegin(GL_QUADS);
                 glTexCoord2f(0,0);
@@ -96,7 +90,7 @@ int main(int argc, char** argv) {
                 glVertex2f(-0.5,-0.5);
             glEnd();
         glPopMatrix();
-
+        */
 
         /* Désactivation du texturing */
         glDisable(GL_TEXTURE_2D);
@@ -140,11 +134,58 @@ int main(int argc, char** argv) {
     }
 
     // TODO: Libération des données GPU
-    glDeleteTextures(1, &textureID);
+    glDeleteTextures(1, textureID);
     // ...
 
     // Liberation des ressources associées à la SDL
     SDL_Quit();
 
     return EXIT_SUCCESS;
+}
+
+void loadTextures(SDL_Surface * textures[SIZE]){
+    if ((textures[0] = IMG_Load("numbers/0.png")) == NULL){
+        fprintf(stderr,"An error occured when loading the image\n");
+        exit(EXIT_FAILURE);
+    }
+    if ((textures[1] = IMG_Load("numbers/1.png")) == NULL){
+        fprintf(stderr,"An error occured when loading the image\n");
+        exit(EXIT_FAILURE);
+    }
+    if ((textures[2] = IMG_Load("numbers/2.png")) == NULL){
+        fprintf(stderr,"An error occured when loading the image\n");
+        exit(EXIT_FAILURE);
+    }
+    if ((textures[3] = IMG_Load("numbers/3.png")) == NULL){
+        fprintf(stderr,"An error occured when loading the image\n");
+        exit(EXIT_FAILURE);
+    }
+    if ((textures[4] = IMG_Load("numbers/4.png")) == NULL){
+        fprintf(stderr,"An error occured when loading the image\n");
+        exit(EXIT_FAILURE);
+    }
+    if ((textures[5] = IMG_Load("numbers/5.png")) == NULL){
+        fprintf(stderr,"An error occured when loading the image\n");
+        exit(EXIT_FAILURE);
+    }
+    if ((textures[6] = IMG_Load("numbers/6.png")) == NULL){
+        fprintf(stderr,"An error occured when loading the image\n");
+        exit(EXIT_FAILURE);
+    }
+    if ((textures[7] = IMG_Load("numbers/7.png")) == NULL){
+        fprintf(stderr,"An error occured when loading the image\n");
+        exit(EXIT_FAILURE);
+    }
+    if ((textures[8] = IMG_Load("numbers/8.png")) == NULL){
+        fprintf(stderr,"An error occured when loading the image\n");
+        exit(EXIT_FAILURE);
+    }
+    if ((textures[9] = IMG_Load("numbers/9.png")) == NULL){
+        fprintf(stderr,"An error occured when loading the image\n");
+        exit(EXIT_FAILURE);
+    }
+    if ((textures[10] = IMG_Load("numbers/colon.png")) == NULL){
+        fprintf(stderr,"An error occured when loading the image\n");
+        exit(EXIT_FAILURE);
+    }
 }

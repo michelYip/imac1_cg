@@ -67,7 +67,7 @@ int main (int argc, char ** argv){
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 0);
 
 	resize_window();
-	SDL_WM_SetCaption("Michel YIP - OpenGL_TP01", NULL);
+	SDL_WM_SetCaption("Michel YIP - OpenGL_TP02", NULL);
 
 	int color = 1;
 	int mode = 0;

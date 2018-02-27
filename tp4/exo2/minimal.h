@@ -13,5 +13,4 @@
 
 void loadTextures(SDL_Surface * textures[SIZE]);
 
-
 #endif
