@@ -27,6 +27,11 @@ int main(int argc, char** argv) {
     SDL_WM_SetCaption("td04", NULL);
     resizeViewport();
 
+    //TODO :
+    //Créer liste planete
+    //Incrémenter Angle
+    //Dessiner planetes
+
     int loop = 1;
     glClearColor(0.1, 0.1, 0.1 ,1.0);
     while(loop) {
@@ -79,4 +84,51 @@ int main(int argc, char** argv) {
     SDL_Quit();
 
     return EXIT_SUCCESS;
+}
+
+/* Dessine un cercle d'origine 0,0 et de diamètre 1 */
+void drawCircle(int full){
+    int i;
+    float theta, x, y;
+    if (full)
+        glBegin(GL_POLYGON);
+    else
+        glBegin(GL_LINE_LOOP);
+    for (i = 0; i < NB_VERTEX_CIRCLE; i++){
+        theta = 2.0 * 3.1415926f * (float)i/(float)NB_VERTEX_CIRCLE;
+        x = 0.5 * cosf(theta);
+        y = 0.5 * sinf(theta);
+        glVertex2f(x,y);
+    }
+    glEnd();
+}
+
+void initPlanet(PlanetList * list, float radius, float distanceToCenter, float rotationSpeed, float, r, float g, float b){
+    Planet tmp;
+    if ((tmp = malloc(sizeof(Planet))) == NULL){
+        fprintf(stderr, "could not allocate a Planet, abort program...\n");
+        exit(EXIT_FAILURE);
+    }
+    tmp->radius = radius;
+    tmp->distanceToCenter = distanceToCenter;
+    tmp->angle = 0;
+    tmp->rotationSpeed = rotationSpeed;
+    tmp->r = r;
+    tmp->g = g;
+    tmp->b = b;
+    tmp->next = (*list);
+    (*list) = tmp;
+}
+
+/* Dessine la liste des planètes */
+void drawPlanets(PlanetList list){
+    while (list){
+        glPushMatrix();
+            glRotatef(list->angle,0,0,1);
+            glTranslatef(list->distanceToCenter, 0, 0);
+            glColor3f(list->r, list->g, list->b);
+            drawCircle(1);
+        glPopMatrix();
+        list = list->next;
+    }
 }
